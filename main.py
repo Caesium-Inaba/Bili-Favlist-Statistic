@@ -67,7 +67,7 @@ def main():
         sys.exit(1)
     
     # 3. 准备保存结果的文件
-    output_file = f"b站收藏夹_{uid}_{fid}_视频标题.txt"
+    output_file = rf"output\b站收藏夹_{uid}_{fid}_视频标题.txt"
     
     try:
         # 4. 开始爬取收藏夹内容

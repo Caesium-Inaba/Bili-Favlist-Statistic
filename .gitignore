@@ -1,7 +1,8 @@
 ## 对于此项目
 # 输出文件
 *视频.txt
-
+*标题.txt
+output/
 
 ## 根据模板
 # Byte-compiled / optimized / DLL files
