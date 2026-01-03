@@ -5,6 +5,32 @@
 # B站收藏夹视频标题爬取工具
 # 使用 bilibili-api-python 库
 
+# 输入单个收藏夹url，
+# 输出单个收藏夹各页视频标题
+
+"""
+以后能不能：
+输入单个收藏夹url（bilibili打开收藏夹后自动到默认收藏夹下
+解析uid，得到所有收藏夹
+
+收藏夹名字
+    视频名
+        tag
+        简介
+        发布日期
+        收藏日期
+        热度(点赞，投币，收藏，转发)
+        高赞评论
+            发布者(name,uid,ip)
+            内容
+        
+        
+
+json语言来记录output
+
+"""
+
+
 import time
 import sys
 from bilibili_api import sync, favorite_list
@@ -67,7 +93,7 @@ def main():
         sys.exit(1)
     
     # 3. 准备保存结果的文件
-    output_file = rf"output\b站收藏夹_{uid}_{fid}_视频标题.txt"
+    output_file = rf"output\uid{uid}_fid{fid}.txt"
     
     try:
         # 4. 开始爬取收藏夹内容
