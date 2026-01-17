@@ -1,44 +1,56 @@
 #!/usr/bin/env python3
+# 以上：hashbang
 # -*- coding: utf-8 -*-
-
-
-# B站收藏夹视频标题爬取工具
-# 使用 bilibili-api-python 库
-
-# 输入单个收藏夹url，
-# 输出单个收藏夹各页视频标题
+# 以上是python3的可选项
 
 """
-以后能不能：
-输入单个收藏夹url（bilibili打开收藏夹后自动到默认收藏夹下
-解析uid，得到所有收藏夹
+B站收藏夹视频标题爬取工具
+使用 bilibili-api-python 库
 
-收藏夹名字
-    视频名
-        tag
-        简介
-        发布日期
-        收藏日期
-        热度(点赞，投币，收藏，转发)
-        高赞评论
-            发布者(name,uid,ip)
-            内容
+输入单个收藏夹url，
+输出单个收藏夹各页视频标题
+"""
+
+
+# 以后能不能：
+# 输入单个收藏夹url（bilibili打开收藏夹后自动到默认收藏夹下
+# 解析uid，得到所有收藏夹
+
+# 收藏夹名字
+#     视频名
+#         tag
+#         简介
+#         发布日期
+#         收藏日期
+#         热度(点赞，投币，收藏，转发)
+#         高赞评论
+#             发布者(name,uid,ip)
+#             内容
         
         
 
-json语言来记录output
+# json语言来记录output
+
+
 
 """
-
+使用 GPT 初步完成了输入单个 fav url 提取单个 fav 中视频标题的功能
+"""
 
 import time
 import sys
-from bilibili_api import sync, favorite_list
+import os # makedirs
+from bilibili_api import sync, favorite_list, video
+import json
+import asyncio # 异步操作
 
-def extract_ids_from_url(url):
+# 像 MATLAB 那样
+import pickle # 保存 workspace
+
+
+def extract_ids_from_url(url: str):
     """
-    从B站收藏夹URL中提取用户ID(uid)和收藏夹ID(fid)
-    使用字符串分割法
+    从B站收藏夹URL中提取用户ID(uid)和收藏夹ID(fid)，使用字符串分割法
     
     参数:
         url: 完整的收藏夹URL，例如:
@@ -51,13 +63,9 @@ def extract_ids_from_url(url):
         如果URL格式不正确，会抛出ValueError
     """
     try:
-        # 提取用户ID (uid) - space.bilibili.com/ 后的第一个数字部分
-        # 例如从 https://space.bilibili.com/525323175/favlist?... 中提取 525323175
-        uid_part = url.split('space.bilibili.com/')[1]
+        uid_part = url.split('space.bilibili.com/')[1] # 这里的索引是 split 之后产生的元素为 str 的 list 的索引
         uid = uid_part.split('/')[0]
         
-        # 提取收藏夹ID (fid) - fid= 后的值
-        # 例如从 ...?fid=3312428975&ftype=create 中提取 3312428975
         fid_part = url.split('fid=')[1]
         fid = fid_part.split('&')[0] if '&' in fid_part else fid_part
         
@@ -67,9 +75,10 @@ def extract_ids_from_url(url):
             
         return uid, fid
         
-    except (IndexError, ValueError) as e:
+    except (IndexError, ValueError) as e: # e 里面是原始错误信息
         raise ValueError(f"URL解析失败: {e}。请确保URL格式正确，例如：https://space.bilibili.com/525323175/favlist?fid=3312428975&ftype=create")
-
+        # 封装为 ValueError
+        
 def main():
     """主函数"""
     print("=" * 60)
@@ -93,8 +102,51 @@ def main():
         sys.exit(1)
     
     # 3. 准备保存结果的文件
+    os.makedirs("output", exist_ok=True)
     output_file = rf"output\uid{uid}_fid{fid}.txt"
+
+    # 4. 开始爬取收藏夹内容
+    print("\n" + "=" * 60)
+    print("试爬第一页")
+    print("=" * 60 + "\n")
     
+    video_count = 0
+    page_num = 1
+    
+    data = sync(favorite_list.get_video_favorite_list_content(
+        media_id=int(fid),  # 收藏夹ID，转为整数
+        page=page_num       # 页码
+    ))
+
+    with open("output\\moe第一页json.json", "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
+
+
+
+
+
+    # # 打开文件准备写入
+    # with open(output_file, 'w', encoding='utf-8') as file:
+    #     # 写入文件头部信息
+    #     file.write(f"B站收藏夹视频标题爬取结果\n")
+    #     file.write(f"用户ID: {uid}\n")
+    #     file.write(f"收藏夹ID: {fid}\n")
+    #     file.write(f"源URL: {url}\n")
+    #     file.write(f"爬取时间: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+    #     file.write("=" * 80 + "\n\n")
+    
+
+
+
+
+
+
+
+
+
+
+
     try:
         # 4. 开始爬取收藏夹内容
         print("\n" + "=" * 60)
@@ -113,7 +165,7 @@ def main():
             file.write(f"源URL: {url}\n")
             file.write(f"爬取时间: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
             file.write("=" * 80 + "\n\n")
-            
+
             # 循环爬取每一页，直到没有更多数据
             while True:
                 try:
